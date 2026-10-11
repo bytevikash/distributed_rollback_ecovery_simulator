@@ -1,0 +1,684 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard | Rollback Recovery Simulator
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ========================================= -->
+<!-- PAGE HEADER -->
+<!-- ========================================= -->
+
+<div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+
+    <div>
+        <h2 class="text-3xl font-bold text-slate-900">
+            Simulation Dashboard
+        </h2>
+
+        <p class="text-slate-500 mt-2">
+            Monitor processes, messages, checkpoints and recovery events.
+        </p>
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- STATISTICS -->
+<!-- ========================================= -->
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+
+    <!-- Processes -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-200">
+
+        <p class="text-sm text-slate-500">
+            Total Processes
+        </p>
+
+        <p class="text-3xl font-bold text-slate-900 mt-2">
+            {{ processes|length }}
+        </p>
+
+    </div>
+
+
+    <!-- Messages -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-200">
+
+        <p class="text-sm text-slate-500">
+            Messages
+        </p>
+
+        <p class="text-3xl font-bold text-slate-900 mt-2">
+            {{ messages|length }}
+        </p>
+
+    </div>
+
+
+    <!-- Checkpoints -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-200">
+
+        <p class="text-sm text-slate-500">
+            Checkpoints
+        </p>
+
+        <p class="text-3xl font-bold text-slate-900 mt-2">
+            {{ checkpoints|length }}
+        </p>
+
+    </div>
+
+
+    <!-- Events -->
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-slate-200">
+
+        <p class="text-sm text-slate-500">
+            Events
+        </p>
+
+        <p class="text-3xl font-bold text-slate-900 mt-2">
+            {{ events|length }}
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- CREATE PROCESS + PROCESS LIST -->
+<!-- ========================================= -->
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+    <!-- CREATE PROCESS -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+
+        <h3 class="text-lg font-semibold text-slate-900 mb-1">
+            Create Process
+        </h3>
+
+        <p class="text-sm text-slate-500 mb-5">
+            Add a new process to the distributed system.
+        </p>
+
+
+        <form method="POST" action="{% url 'create_process' %}">
+
+            {% csrf_token %}
+
+            <!-- Name -->
+            <div class="mb-4">
+
+                <label class="block text-sm font-medium mb-2">
+                    Process Name
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="Example: P1"
+                    required
+                    class="w-full border border-slate-300 rounded-lg px-4 py-2.5
+                           focus:outline-none focus:ring-2 focus:ring-slate-500"
+                >
+
+            </div>
+
+
+            <!-- Initial State -->
+            <div class="mb-5">
+
+                <label class="block text-sm font-medium mb-2">
+                    Initial State
+                </label>
+
+                <input
+                    type="number"
+                    name="state"
+                    value="0"
+                    class="w-full border border-slate-300 rounded-lg px-4 py-2.5
+                           focus:outline-none focus:ring-2 focus:ring-slate-500"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="w-full bg-slate-900 text-white py-2.5 rounded-lg
+                       hover:bg-slate-700 transition font-medium">
+
+                + Create Process
+
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- PROCESS LIST -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+
+        <div class="flex justify-between items-center mb-5">
+
+            <div>
+                <h3 class="text-lg font-semibold">
+                    Distributed Processes
+                </h3>
+
+                <p class="text-sm text-slate-500">
+                    Current state of every process.
+                </p>
+            </div>
+
+        </div>
+
+
+        {% if processes %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                {% for process in processes %}
+
+                    <div class="border border-slate-200 rounded-xl p-4
+                                hover:shadow-md transition">
+
+                        <!-- Process Header -->
+                        <div class="flex justify-between items-center">
+
+                            <div>
+
+                                <h4 class="text-lg font-bold">
+                                    {{ process.name }}
+                                </h4>
+
+                                <p class="text-sm text-slate-500">
+                                    Process ID: {{ process.id }}
+                                </p>
+
+                            </div>
+
+
+                            {% if process.status == "RUNNING" %}
+
+                                <span class="px-3 py-1 text-xs font-semibold
+                                             rounded-full bg-green-100 text-green-700">
+
+                                    RUNNING
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="px-3 py-1 text-xs font-semibold
+                                             rounded-full bg-red-100 text-red-700">
+
+                                    FAILED
+
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- State -->
+                        <div class="mt-5 bg-slate-50 rounded-lg p-4">
+
+                            <p class="text-sm text-slate-500">
+                                Current State
+                            </p>
+
+                            <p class="text-3xl font-bold mt-1">
+                                {{ process.state }}
+                            </p>
+
+                        </div>
+
+
+                        <!-- Buttons -->
+                        <div class="grid grid-cols-2 gap-2 mt-4">
+
+                            <!-- Checkpoint -->
+                            <a
+                                href="{% url 'create_checkpoint' process.id %}"
+                                class="text-center bg-blue-600 text-white
+                                       py-2 rounded-lg text-sm
+                                       hover:bg-blue-700">
+
+                                Checkpoint
+
+                            </a>
+
+
+                            <!-- Fail -->
+                            <a
+                                href="{% url 'fail_process' process.id %}"
+                                class="text-center bg-red-600 text-white
+                                       py-2 rounded-lg text-sm
+                                       hover:bg-red-700">
+
+                                Fail
+
+                            </a>
+
+
+                            <!-- Rollback -->
+                            <a
+                                href="{% url 'rollback_process' process.id %}"
+                                class="text-center bg-amber-600 text-white
+                                       py-2 rounded-lg text-sm
+                                       hover:bg-amber-700">
+
+                                Rollback
+
+                            </a>
+
+
+                            <!-- Reset -->
+                            <a
+                                href="{% url 'reset_process' process.id %}"
+                                class="text-center bg-slate-600 text-white
+                                       py-2 rounded-lg text-sm
+                                       hover:bg-slate-700">
+
+                                Reset
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <!-- Empty State -->
+
+            <div class="text-center py-12">
+
+                <div class="text-5xl mb-4">
+                    🖥️
+                </div>
+
+                <h4 class="text-lg font-semibold">
+                    No Processes Found
+                </h4>
+
+                <p class="text-sm text-slate-500 mt-2">
+                    Create your first process to start the simulation.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- SEND MESSAGE -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+
+    <div class="mb-5">
+
+        <h3 class="text-lg font-semibold">
+            Send Message
+        </h3>
+
+        <p class="text-sm text-slate-500">
+            Simulate communication between distributed processes.
+        </p>
+
+    </div>
+
+
+    <form method="POST" action="{% url 'send_message' %}">
+
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+            <!-- Sender -->
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Sender
+                </label>
+
+                <select
+                    name="sender"
+                    required
+                    class="w-full border border-slate-300 rounded-lg
+                           px-4 py-2.5 bg-white">
+
+                    <option value="">
+                        Select sender
+                    </option>
+
+                    {% for process in processes %}
+
+                        <option value="{{ process.id }}">
+                            {{ process.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Receiver -->
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Receiver
+                </label>
+
+                <select
+                    name="receiver"
+                    required
+                    class="w-full border border-slate-300 rounded-lg
+                           px-4 py-2.5 bg-white">
+
+                    <option value="">
+                        Select receiver
+                    </option>
+
+                    {% for process in processes %}
+
+                        <option value="{{ process.id }}">
+                            {{ process.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+
+            <!-- Data -->
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Message Data
+                </label>
+
+                <input
+                    type="text"
+                    name="data"
+                    placeholder="Hello"
+                    required
+                    class="w-full border border-slate-300 rounded-lg
+                           px-4 py-2.5"
+                >
+
+            </div>
+
+
+            <!-- Amount -->
+            <div>
+
+                <label class="block text-sm font-medium mb-2">
+                    Amount
+                </label>
+
+                <input
+                    type="number"
+                    name="amount"
+                    value="10"
+                    min="1"
+                    required
+                    class="w-full border border-slate-300 rounded-lg
+                           px-4 py-2.5"
+                >
+
+            </div>
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="mt-5 bg-slate-900 text-white px-6 py-2.5
+                   rounded-lg hover:bg-slate-700 transition">
+
+            Send Message
+
+        </button>
+
+    </form>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- MESSAGE HISTORY -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+
+    <h3 class="text-lg font-semibold mb-5">
+        Message History
+    </h3>
+
+
+    {% if messages %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead>
+
+                    <tr class="border-b border-slate-200 text-left">
+
+                        <th class="py-3 px-3">
+                            Sender
+                        </th>
+
+                        <th class="py-3 px-3">
+                            Receiver
+                        </th>
+
+                        <th class="py-3 px-3">
+                            Data
+                        </th>
+
+                        <th class="py-3 px-3">
+                            Amount
+                        </th>
+
+                        <th class="py-3 px-3">
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for message in messages %}
+
+                        <tr class="border-b border-slate-100">
+
+                            <td class="py-3 px-3 font-medium">
+                                {{ message.sender.name }}
+                            </td>
+
+                            <td class="py-3 px-3 font-medium">
+                                {{ message.receiver.name }}
+                            </td>
+
+                            <td class="py-3 px-3">
+                                {{ message.data }}
+                            </td>
+
+                            <td class="py-3 px-3">
+                                {{ message.amount }}
+                            </td>
+
+                            <td class="py-3 px-3">
+
+                                {% if message.delivered %}
+
+                                    <span class="text-green-600 font-medium">
+                                        Delivered
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-red-600 font-medium">
+                                        Pending
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <p class="text-sm text-slate-500">
+            No messages yet.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- CHECKPOINTS -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+
+    <h3 class="text-lg font-semibold mb-5">
+        Checkpoints
+    </h3>
+
+
+    {% if checkpoints %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            {% for checkpoint in checkpoints %}
+
+                <div class="border border-slate-200 rounded-lg p-4">
+
+                    <div class="flex justify-between">
+
+                        <h4 class="font-semibold">
+                            {{ checkpoint.label }}
+                        </h4>
+
+                        <span class="text-xs text-slate-500">
+                            {{ checkpoint.process.name }}
+                        </span>
+
+                    </div>
+
+                    <p class="text-sm text-slate-500 mt-3">
+                        Saved State
+                    </p>
+
+                    <p class="text-2xl font-bold">
+                        {{ checkpoint.state }}
+                    </p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="text-sm text-slate-500">
+            No checkpoints created yet.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- EVENT LOG -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+
+    <h3 class="text-lg font-semibold mb-5">
+        Event Log
+    </h3>
+
+
+    {% if events %}
+
+        <div class="space-y-3">
+
+            {% for event in events %}
+
+                <div class="flex gap-4 border-b border-slate-100 pb-3">
+
+                    <div class="w-2 h-2 rounded-full bg-slate-600 mt-2">
+                    </div>
+
+                    <div>
+
+                        <p class="text-sm font-medium">
+                            {{ event.description }}
+                        </p>
+
+                        <p class="text-xs text-slate-400 mt-1">
+                            {{ event.created_at }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="text-sm text-slate-500">
+            No events recorded yet.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
