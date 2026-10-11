@@ -4,7 +4,10 @@ from rollback_recovery import views
 
 
 urlpatterns = [
+    
+    # admin
     path('admin/', admin.site.urls),
+    
 
     # Dashboard
     path("", views.dashboard, name="dashboard"),
