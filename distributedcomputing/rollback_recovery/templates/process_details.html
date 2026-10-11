@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ process.name }} | Rollback Simulator
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ========================================= -->
+<!-- BACK BUTTON -->
+<!-- ========================================= -->
+
+<div class="mb-6">
+
+    <a href="{% url 'dashboard' %}"
+       class="inline-flex items-center gap-2 text-sm text-slate-600
+              hover:text-slate-900">
+
+        ← Back to Dashboard
+
+    </a>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- PROCESS HEADER -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+
+    <div class="flex flex-col md:flex-row md:items-center
+                md:justify-between gap-5">
+
+        <div>
+
+            <p class="text-sm text-slate-500">
+                Process Details
+            </p>
+
+            <h1 class="text-3xl font-bold text-slate-900 mt-1">
+                {{ process.name }}
+            </h1>
+
+            <p class="text-sm text-slate-500 mt-1">
+                Process ID: {{ process.id }}
+            </p>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <div>
+
+            {% if process.status == "RUNNING" %}
+
+                <span class="inline-flex px-4 py-2 rounded-full
+                             bg-green-100 text-green-700
+                             text-sm font-semibold">
+
+                    ● RUNNING
+
+                </span>
+
+            {% else %}
+
+                <span class="inline-flex px-4 py-2 rounded-full
+                             bg-red-100 text-red-700
+                             text-sm font-semibold">
+
+                    ● FAILED
+
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- PROCESS INFORMATION -->
+<!-- ========================================= -->
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+
+    <!-- CURRENT STATE -->
+
+    <div class="bg-white rounded-xl shadow-sm
+                border border-slate-200 p-6">
+
+        <p class="text-sm text-slate-500">
+            Current State
+        </p>
+
+        <p class="text-4xl font-bold text-slate-900 mt-2">
+            {{ process.state }}
+        </p>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div class="bg-white rounded-xl shadow-sm
+                border border-slate-200 p-6">
+
+        <p class="text-sm text-slate-500">
+            Process Status
+        </p>
+
+        <p class="text-xl font-bold mt-3
+                  {% if process.status == 'RUNNING' %}
+                    text-green-600
+                  {% else %}
+                    text-red-600
+                  {% endif %}">
+
+            {{ process.status }}
+
+        </p>
+
+    </div>
+
+
+    <!-- CHECKPOINT COUNT -->
+
+    <div class="bg-white rounded-xl shadow-sm
+                border border-slate-200 p-6">
+
+        <p class="text-sm text-slate-500">
+            Total Checkpoints
+        </p>
+
+        <p class="text-4xl font-bold text-slate-900 mt-2">
+            {{ checkpoints|length }}
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- PROCESS ACTIONS -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm
+            border border-slate-200 p-6 mb-6">
+
+    <h2 class="text-lg font-semibold text-slate-900">
+        Recovery Operations
+    </h2>
+
+    <p class="text-sm text-slate-500 mt-1 mb-5">
+        Perform checkpoint, failure and recovery operations.
+    </p>
+
+
+    <div class="flex flex-wrap gap-3">
+
+        <!-- CREATE CHECKPOINT -->
+
+        <a href="{% url 'create_checkpoint' process.id %}"
+           class="px-5 py-2.5 rounded-lg bg-blue-600
+                  text-white text-sm font-medium
+                  hover:bg-blue-700 transition">
+
+            + Create Checkpoint
+
+        </a>
+
+
+        <!-- FAIL PROCESS -->
+
+        {% if process.status == "RUNNING" %}
+
+            <a href="{% url 'fail_process' process.id %}"
+               class="px-5 py-2.5 rounded-lg bg-red-600
+                      text-white text-sm font-medium
+                      hover:bg-red-700 transition">
+
+                Fail Process
+
+            </a>
+
+        {% endif %}
+
+
+        <!-- ROLLBACK -->
+
+        <a href="{% url 'rollback_process' process.id %}"
+           class="px-5 py-2.5 rounded-lg bg-amber-600
+                  text-white text-sm font-medium
+                  hover:bg-amber-700 transition">
+
+            ↶ Rollback
+
+        </a>
+
+
+        <!-- RESET -->
+
+        <a href="{% url 'reset_process' process.id %}"
+           class="px-5 py-2.5 rounded-lg bg-slate-700
+                  text-white text-sm font-medium
+                  hover:bg-slate-800 transition">
+
+            Reset
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- CHECKPOINT HISTORY -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm
+            border border-slate-200 p-6 mb-6">
+
+    <div class="mb-5">
+
+        <h2 class="text-lg font-semibold">
+            Checkpoint History
+        </h2>
+
+        <p class="text-sm text-slate-500 mt-1">
+            Saved recovery states of {{ process.name }}.
+        </p>
+
+    </div>
+
+
+    {% if checkpoints %}
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-sm">
+
+                <thead>
+
+                    <tr class="border-b border-slate-200 text-left">
+
+                        <th class="py-3 px-4">
+                            Checkpoint
+                        </th>
+
+                        <th class="py-3 px-4">
+                            Saved State
+                        </th>
+
+                        <th class="py-3 px-4">
+                            Created At
+                        </th>
+
+                        <th class="py-3 px-4">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for checkpoint in checkpoints %}
+
+                        <tr class="border-b border-slate-100">
+
+                            <td class="py-3 px-4">
+
+                                <span class="font-semibold">
+                                    {{ checkpoint.label }}
+                                </span>
+
+                            </td>
+
+
+                            <td class="py-3 px-4">
+
+                                <span class="inline-flex px-3 py-1
+                                             rounded-md bg-slate-100
+                                             font-medium">
+
+                                    {{ checkpoint.state }}
+
+                                </span>
+
+                            </td>
+
+
+                            <td class="py-3 px-4 text-slate-500">
+
+                                {{ checkpoint.created_at }}
+
+                            </td>
+
+
+                            <td class="py-3 px-4">
+
+                                <a href="{% url 'rollback_process' process.id %}"
+                                   class="text-amber-600
+                                          hover:text-amber-800
+                                          font-medium">
+
+                                    Rollback
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-10">
+
+            <p class="text-slate-500">
+                No checkpoints created yet.
+            </p>
+
+            <a href="{% url 'create_checkpoint' process.id %}"
+               class="inline-block mt-4 px-4 py-2
+                      bg-blue-600 text-white rounded-lg
+                      text-sm">
+
+                Create First Checkpoint
+
+            </a>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- SENT MESSAGES -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm
+            border border-slate-200 p-6 mb-6">
+
+    <h2 class="text-lg font-semibold mb-5">
+        Sent Messages
+    </h2>
+
+
+    {% if sent_messages %}
+
+        <div class="space-y-3">
+
+            {% for message in sent_messages %}
+
+                <div class="flex items-center justify-between
+                            border border-slate-200 rounded-lg
+                            p-4">
+
+                    <div>
+
+                        <p class="font-medium">
+
+                            {{ message.sender.name }}
+
+                            <span class="text-slate-400">
+                                →
+                            </span>
+
+                            {{ message.receiver.name }}
+
+                        </p>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            {{ message.data }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="text-right">
+
+                        <p class="font-semibold">
+                            +{{ message.amount }}
+                        </p>
+
+                        <p class="text-xs text-slate-400">
+                            {{ message.sent_at }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="text-sm text-slate-500">
+            This process has not sent any messages.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- RECEIVED MESSAGES -->
+<!-- ========================================= -->
+
+<div class="bg-white rounded-xl shadow-sm
+            border border-slate-200 p-6 mb-6">
+
+    <h2 class="text-lg font-semibold mb-5">
+        Received Messages
+    </h2>
+
+
+    {% if received_messages %}
+
+        <div class="space-y-3">
+
+            {% for message in received_messages %}
+
+                <div class="flex items-center justify-between
+                            border border-slate-200 rounded-lg
+                            p-4">
+
+                    <div>
+
+                        <p class="font-medium">
+
+                            {{ message.sender.name }}
+
+                            <span class="text-slate-400">
+                                →
+                            </span>
+
+                            {{ message.receiver.name }}
+
+                        </p>
+
+                        <p class="text-sm text-slate-500 mt-1">
+                            {{ message.data }}
+                        </p>
+
+                    </div>
+
+
+                    <div class="text-right">
+
+                        <p class="font-semibold text-green-600">
+                            +{{ message.amount }}
+                        </p>
+
+                        <p class="text-xs text-slate-400">
+                            {{ message.sent_at }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p class="text-sm text-slate-500">
+            This process has not received any messages.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<!-- ========================================= -->
+<!-- RECOVERY EXPLANATION -->
+<!-- ========================================= -->
+
+<div class="bg-slate-900 text-white rounded-xl p-6">
+
+    <h2 class="text-lg font-semibold">
+        Rollback Recovery
+    </h2>
+
+    <p class="text-sm text-slate-300 mt-2 leading-6">
+
+        If this process fails, the rollback operation restores
+        its state from the latest available checkpoint and
+        changes the process status back to RUNNING.
+
+    </p>
+
+
+    <div class="mt-5 flex items-center gap-3 text-sm">
+
+        <div class="px-4 py-2 bg-slate-700 rounded-lg">
+            Current State
+        </div>
+
+        <span>→</span>
+
+        <div class="px-4 py-2 bg-slate-700 rounded-lg">
+            Failure
+        </div>
+
+        <span>→</span>
+
+        <div class="px-4 py-2 bg-slate-700 rounded-lg">
+            Checkpoint
+        </div>
+
+        <span>→</span>
+
+        <div class="px-4 py-2 bg-green-700 rounded-lg">
+            Recovery
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
