@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Distributed Rollback Recovery Simulator
+        {% endblock %}
+    </title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+
+    <!-- NAVBAR -->
+    <nav class="bg-slate-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+
+            <div class="flex items-center justify-between">
+
+                <!-- Logo -->
+                <div>
+                    <h1 class="text-xl font-bold">
+                        Distributed Rollback Recovery
+                    </h1>
+
+                    <p class="text-xs text-slate-400 mt-1">
+                        Distributed Computing Simulator
+                    </p>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex gap-4 text-sm">
+
+                    <a href="{% url 'dashboard' %}"
+                       class="px-4 py-2 rounded-lg hover:bg-slate-700 transition">
+                        Dashboard
+                    </a>
+                    
+
+                </div>
+
+            </div>
+
+        </div>
+    </nav>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Django Messages -->
+        {% if messages %}
+
+            <div class="space-y-3 mb-6">
+
+                {% for message in messages %}
+
+                    <div class="px-4 py-3 rounded-lg bg-white shadow border-l-4
+                        {% if message.tags == 'success' %}
+                            border-green-500
+                        {% elif message.tags == 'error' %}
+                            border-red-500
+                        {% else %}
+                            border-yellow-500
+                        {% endif %}
+                    ">
+
+                        <p class="text-sm">
+                            {{ message }}
+                        </p>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer class="mt-10 bg-slate-900 text-slate-400">
+
+        <div class="max-w-7xl mx-auto px-6 py-6 text-center">
+
+            <p class="text-sm">
+                Distributed Rollback Recovery Simulator
+            </p>
+
+            <p class="text-xs mt-1">
+                Distributed Computing Project
+            </p>
+
+        </div>
+
+    </footer>
+
+</body>
+</html> 
